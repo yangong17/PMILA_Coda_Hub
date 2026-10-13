@@ -1,0 +1,16 @@
+User-agent: Mediapartners-Google*
+Disallow:
+
+User-agent: *
+Disallow: /api/
+Disallow: /comment
+Disallow: /feeds/videos.xml
+Disallow: /get_video_info
+Disallow: /results
+Disallow: /login
+Disallow: /signup
+Disallow: /live_chat
+Disallow: /verify_age
+Disallow: /watch_ajax
+Disallow: /youtubei/
+Disallow: /channel_picker

@@ -1,0 +1,14 @@
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=5.0.0
+python-dateutil>=2.8.2
+feedparser>=6.0.11
+PyYAML>=6.0
+gspread>=6.0.0
+google-auth>=2.23.0
+python-dotenv>=1.0.0
+tzdata>=2024.1
+# Optional: lets the weekly link check ask Claude about ambiguous pages
+# (only used when ANTHROPIC_API_KEY is set).
+anthropic>=0.69.0
+pytest>=8.0.0

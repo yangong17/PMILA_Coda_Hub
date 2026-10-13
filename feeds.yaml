@@ -1,0 +1,83 @@
+# PM News feeds. Edit this file to add/remove outlets — no code changes needed.
+#
+#   name      shown in the "Outlet" column (keep it stable once Coda is syncing)
+#   url       the RSS/Atom feed URL (NOT the website's home page)
+#   topic     free label for filtering in Coda (e.g. Agile, Leadership, PM Practice)
+#   enabled   false = keep the entry but skip it
+#   max_items newest N items per run (default 20)
+#   include_keywords      optional: keep only headlines containing one of these
+#                         (whole words, case-insensitive)
+#   exclude_url_patterns  optional: drop links containing any of these
+#
+# The `filters` block at the bottom applies to EVERY feed: it drops vendor
+# listicles ("14 Best ... Newsletters"), software round-ups and non-English
+# posts, so the News table stays about delivering projects and leading teams.
+#
+# Each feed was checked on 2026-10-08 and returned dated items (see README).
+# Only headline, outlet, date and link are stored — never article text.
+
+feeds:
+  - name: Scrum.org Blog
+    url: https://www.scrum.org/resources/blog/rss.xml
+    topic: Agile
+
+  - name: Mountain Goat Software (Mike Cohn)
+    url: https://www.mountaingoatsoftware.com/blog/rss
+    topic: Agile
+
+  - name: InfoQ – Culture & Methods
+    url: https://feed.infoq.com/culture-methods
+    topic: Agile & Delivery
+
+  - name: InfoQ – Agile
+    url: https://feed.infoq.com/agile/
+    topic: Agile & Delivery
+
+  - name: The Digital Project Manager
+    url: https://thedigitalprojectmanager.com/feed/
+    topic: PM Practice
+
+  - name: ProjectManager.com Blog
+    url: https://www.projectmanager.com/blog/feed
+    topic: PM Practice
+
+  - name: Harvard Business Review
+    url: https://feeds.hbr.org/harvardbusiness
+    topic: Leadership
+    # Sponsored posts and podcast episodes are not news headlines.
+    exclude_url_patterns: ["/sponsored/", "/podcast/"]
+    # HBR covers all of management; keep the items about leading people,
+    # teams, change and decisions (matched case-insensitively, whole words).
+    include_keywords: [lead, leading, leader, leaders, leadership, manager, managers,
+      team, teams, project, projects, change, decision, decisions, meeting,
+      meetings, collaboration, productivity, strategy, execution, AI,
+      feedback, stakeholder, stakeholders, priorities, workload, burnout]
+
+  - name: Atlassian Work Life – Teamwork
+    url: https://www.atlassian.com/blog/teamwork/feed
+    topic: Teamwork
+    # Disabled 2026-10-12: mostly product marketing, not reporting.
+    enabled: false
+
+  # Checked and NOT usable on 2026-10-08 (kept here so nobody re-tests them):
+  #   PMI.org            — no public RSS feed found (blog/press pages have none)
+  #   ProjectManagement.com — /rss/ returns 404
+  #   Mind Tools         — /feed serves an HTML page, not a feed
+  #   Agile Alliance     — /feed/ serves the HTML home page
+  #   MIT Sloan Mgmt Rev — robots.txt disallows automated access to /feed/
+  #   PM World Library   — feed is valid but empty (0 items)
+  #   APM (UK)           — news "rss" URL is an HTML page
+
+# Applied to every feed above, after the per-feed options.
+filters:
+  # Drop titles in other languages (Scrum.org publishes some German posts).
+  english_only: true
+  # Case-insensitive regular expressions matched against the headline.
+  exclude_title_patterns:
+    - '^(top\s+)?\d+\s+(best|top)\b'                 # "14 Best ...", "Top 10 Best ..."
+    - '^top\s+\d+\b'                                # "Top 18 Agile Coaches ..."
+    - '\b(newsletters|podcasts|influencers|integrations|alternatives)\b.*\b20\d\d\b'
+    - '\bto (follow|learn from|subscribe to)\b'
+    - '\bsoftware (benefits|reviews?|comparison)\b'
+    - '\btools, features\b'
+    - '\bsponsored\b'

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <title>SAMPLE CHANNEL</title>
+ <entry><id>yt:video:AAAAAAAAAAA</id><yt:videoId>AAAAAAAAAAA</yt:videoId><title>Sample Talk One</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=AAAAAAAAAAA"/><published>2026-10-05T01:30:00+00:00</published></entry>
+ <entry><id>yt:video:BBBBBBBBBBB</id><yt:videoId>BBBBBBBBBBB</yt:videoId><title>Sample Talk Two</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=BBBBBBBBBBB"/><published>2026-09-01T17:00:00+00:00</published></entry>
+</feed>
