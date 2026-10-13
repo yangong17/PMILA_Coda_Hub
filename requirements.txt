@@ -12,3 +12,5 @@ tzdata>=2024.1
 # (only used when ANTHROPIC_API_KEY is set).
 anthropic>=0.69.0
 pytest>=8.0.0
+# Real-browser recheck of links that refuse plain requests (weekly check only)
+playwright>=1.45.0

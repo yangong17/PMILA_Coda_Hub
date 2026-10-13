@@ -299,3 +299,31 @@ def test_stored_row_filter_clears_old_listicles():
     assert keep({"headline": "Match Your Pace to the Moment", "outlet": "HBR"}) is False
     assert keep({"headline": "What Every Leader Gets Wrong", "outlet": "HBR"}) is True
     assert keep({"headline": "Anything", "outlet": "Retired outlet"}) is True
+
+
+def test_blocked_link_rechecked_in_browser():
+    from collections import OrderedDict
+    from src.fetching import Probe
+    from src import linkcheck
+
+    class Plain:
+        request_count = 0
+        _dead = {}
+        def probe(self, url):
+            return Probe(url, status=403, final_url=url)
+
+    class Browser:
+        def probe(self, url):
+            if "stillblocked" in url:
+                return Probe(url, status=403, final_url=url)
+            if "dead" in url:
+                return Probe(url, status=404, final_url=url)
+            return Probe(url, status=200, final_url=url, content_type="text/html",
+                         text="<title>PMI</title>")
+
+    grouped = OrderedDict((u, [{"Where": "Page: x", "Item": "x"}]) for u in
+                          ["https://a.org/ok", "https://a.org/stillblocked", "https://a.org/dead"])
+    res = {r["URL"]: r["result"] for r in
+           linkcheck.check_links(grouped, Plain(), "now", browser=Browser(), recheck_wait=0, log=lambda *a: None)}
+    assert res == {"https://a.org/ok": "OK", "https://a.org/stillblocked": "Blocked",
+                   "https://a.org/dead": "Broken"}

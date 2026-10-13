@@ -284,7 +284,7 @@ def review_with_claude(item: str, url: str, probe: Probe, client=None) -> Option
 # ── running the link check ───────────────────────────────────────────────────
 def check_links(grouped: "OrderedDict[str, List[Dict]]", fetcher, now: str,
                 reviewer: Optional[Callable] = None, recheck_wait: float = 20,
-                log=print) -> List[Dict]:
+                browser=None, log=print) -> List[Dict]:
     results: List[Dict] = []
     probes: Dict[str, Probe] = {}
     total = len(grouped)
@@ -316,6 +316,22 @@ def check_links(grouped: "OrderedDict[str, List[Dict]]", fetcher, now: str,
             probes[r["URL"]] = p
             c = classify(p, r["_uses"])
             r.update(result=c["result"], note=c["note"], status=p.status or "", final=p.final_url)
+
+    # Links the plain request was refused on get a look in a real browser.
+    if browser is not None:
+        blocked = [r for r in results if r["result"] == "Blocked"]
+        if blocked:
+            log(f"  re-checking {len(blocked)} blocked link(s) in a real browser…")
+        for r in blocked:
+            p = browser.probe(r["URL"])
+            if p.error:
+                continue                      # keep "Blocked"; the browser couldn't tell us more
+            c = classify(p, r["_uses"])
+            if c["result"] == "Blocked":
+                continue
+            probes[r["URL"]] = p
+            r.update(result=c["result"], note=(c["note"] + " (checked in a browser)").strip(),
+                     status=p.status or "", final=p.final_url)
 
     if reviewer:
         for r in results:
@@ -520,7 +536,13 @@ def main(argv=None, fetcher=None, book=None) -> int:
     reviewer = review_with_claude if reviewer_available() else None
     if reviewer:
         print(f"Suspect pages will be reviewed by {REVIEW_MODEL}")
-    results = check_links(grouped, fetcher, now, reviewer=reviewer)
+    from . import browsercheck
+    if browsercheck.available() and not os.environ.get("LINKCHECK_NO_BROWSER"):
+        with browsercheck.BrowserProber() as browser:
+            results = check_links(grouped, fetcher, now, reviewer=reviewer, browser=browser)
+    else:
+        print("Real-browser recheck unavailable (playwright not installed); Blocked links stay Blocked")
+        results = check_links(grouped, fetcher, now, reviewer=reviewer)
     checks = freshness_checks(tables, run_log, enabled_outlets())
     summary = summarize(results, checks)
 
