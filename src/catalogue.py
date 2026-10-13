@@ -78,6 +78,8 @@ def merge(table: str, existing: List[Dict], fresh: List[Dict], now: str,
             v = r.get(f)
             if not _empty(v):
                 row[f] = v
+            elif f in schema.BLANK_IS_VALID.get(table, ()) and f in r:
+                row[f] = ""
             elif f not in row:
                 row[f] = v if f in schema.NUMERIC_FIELDS else (v or "")
         row[key] = k

@@ -99,6 +99,11 @@ NUMERIC_FIELDS = {"member_price", "non_member_price", "student_military_price", 
 # stored row), like WebinarHub's Status column.
 DERIVED_FIELDS = {"status", "freshness"}
 
+# Fields where a blank from a page we DID read successfully is the truth, not a
+# gap: it replaces an older value. (Blog categories: an earlier parser put every
+# site-wide category on every post, and "none visible" must be able to clear that.)
+BLANK_IS_VALID = {"blog": {"category"}}
+
 # News is a rolling window; older items are dropped at write time so the Coda
 # sync table stays small. Other tables keep everything (an archive).
 RETENTION_DAYS = {"news": 120}

@@ -133,13 +133,21 @@ def parse_blog_post(html: str) -> dict:
     names = list(dict.fromkeys(n for n in own if n))
 
     if not names and cat_links:
-        # Fallback: labels shown as plain text. A category name that appears
-        # more often than its single sidebar entry is a label on this post.
+        # Fallback: the post's own label(s) are printed as plain text near its
+        # date. Every category also appears in the site-wide list (sometimes
+        # twice, e.g. desktop + mobile menus), so a name is this post's only if
+        # it shows up MORE often than the least-repeated category does.
+        # Everything tied (the usual case when the post has no label we can see)
+        # means "can't tell": better a blank Category than all sixteen.
         all_names = {clean(a.get_text(" ")) for a in cat_links}
+        all_names.discard("")
         for t in soup(["script", "style", "noscript", "template"]):
             t.decompose()
         counts = Counter(clean(x) for x in soup.get_text("\n").split("\n"))
-        names = [n for n in all_names if n and counts.get(n, 0) >= 2]
+        floor = min((counts.get(n, 0) for n in all_names), default=0)
+        names = [n for n in all_names if counts.get(n, 0) > max(floor, 1)]
+        if len(names) > 4:                      # still looks like the whole list
+            names = []
     return {"category": ", ".join(sorted(names)), "video_url": video}
 
 

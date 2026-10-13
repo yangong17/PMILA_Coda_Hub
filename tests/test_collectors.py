@@ -239,3 +239,27 @@ def test_export_to_sheets_merges_and_leaves_empty_tables_alone(monkeypatch):
     assert titles["Old post"]["freshness"] == "Stale" and titles["New post"]["freshness"] == "Current"
     assert book.sheets["News"].values == old_news          # 0 rows collected → untouched
     assert "Events" not in book.sheets                     # not even created
+
+
+def test_blog_category_not_the_whole_sitewide_list():
+    """Real pages repeat the category list (desktop + mobile menus) and print the
+    post's own label as plain text. Only that label may come back; if the page
+    gives no way to tell, the category is blank, never all of them."""
+    from src.collectors.pmi_la_blog import parse_blog_post
+    cats = ["Chapter News", "Member News", "Free Webinar", "Career Connect", "PMI Events", "Free Events"]
+    menu = "".join(f'<li><a href="https://pmi-la.org/blog?categoryId={i}">{c}</a></li>' for i, c in enumerate(cats))
+    own = "<p>05 October 2026 at 08:00AM</p><p>Chapter News</p><h1>Topgolf recap</h1>"
+    page = f"<html><body><div>{own}</div><nav><ul>{menu}</ul></nav><aside><ul>{menu}</ul></aside></body></html>"
+    assert parse_blog_post(page)["category"] == "Chapter News"
+    no_label = f"<html><body><h1>Post</h1><nav><ul>{menu}</ul></nav><aside><ul>{menu}</ul></aside></body></html>"
+    assert parse_blog_post(no_label)["category"] == ""
+
+
+def test_blank_category_from_a_read_page_clears_old_junk_but_missing_key_does_not():
+    existing = [{"url": "https://a.org/1", "title": "A", "category": "Everything, Else"},
+                {"url": "https://a.org/2", "title": "B", "category": "Kept"}]
+    fresh = [{"url": "https://a.org/1", "title": "A", "category": ""},      # detail page read, no label
+             {"url": "https://a.org/2", "title": "B"}]                      # detail page failed this run
+    rows = {r["url"]: r for r in merge("blog", existing, fresh, now="T1")}
+    assert rows["https://a.org/1"]["category"] == ""
+    assert rows["https://a.org/2"]["category"] == "Kept"
