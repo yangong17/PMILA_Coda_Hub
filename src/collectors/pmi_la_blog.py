@@ -131,6 +131,10 @@ def parse_blog_post(html: str) -> dict:
     sidebar_ids = {k for k, v in by_parent.items() if len(v) >= 5}
     own = [clean(a.get_text(" ")) for k, v in by_parent.items() if k not in sidebar_ids for a in v]
     names = list(dict.fromkeys(n for n in own if n))
+    if len(names) > 4:
+        # A post carries one or two labels. This many "own" links means the page
+        # lays the site-wide list out in pieces our container test can't group.
+        names = []
 
     if not names and cat_links:
         # Fallback: the post's own label(s) are printed as plain text near its

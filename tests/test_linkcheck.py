@@ -29,6 +29,12 @@ def test_classify_hard_failures():
     assert linkcheck.classify(Probe("https://a.org/x", error="timed out"), uses())["result"] == "Broken"
 
 
+def test_classify_400_is_treated_as_bot_blocking_and_page_links_skip_title_match():
+    assert linkcheck.classify(Probe("https://www.pm4ngos.org", status=400), uses())["result"] == "Blocked"
+    p = html_probe("https://aisel.aisnet.org/icis1981/20", title="Environmental Scanning--The Impact of the Stakeholder Concept")
+    assert linkcheck.classify(p, uses("Template: Stakeholder Register", "Page: Template: Stakeholder Register"))["result"] == "OK"
+
+
 def test_classify_blocked_and_robots_are_not_failures():
     assert linkcheck.classify(Probe("https://a.org/x", status=403), uses())["result"] == "Blocked"
     assert linkcheck.classify(Probe("https://a.org/x", status=429), uses())["result"] == "Blocked"

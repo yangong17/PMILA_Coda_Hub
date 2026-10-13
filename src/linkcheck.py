@@ -187,7 +187,7 @@ def classify(probe: Probe, uses: List[Dict]) -> Dict:
     st = probe.status or 0
     if st in (404, 410):
         return {"result": "Broken", "note": f"HTTP {st}: page not found"}
-    if st in (401, 403, 429, 999):
+    if st in (400, 401, 403, 429, 999):
         return {"result": "Blocked", "note": f"HTTP {st}: the site refuses automated checks; open it by hand"}
     if st >= 400:
         return {"result": "Broken", "note": f"HTTP {st}"}
@@ -205,8 +205,11 @@ def classify(probe: Probe, uses: List[Dict]) -> Dict:
     if SOFT_404.search(title) or SOFT_404.search(h1):
         return {"result": "Broken", "note": f"Shows a not-found page: “{(title or h1)[:80]}”"}
 
-    items = {u["Item"] for u in uses if u.get("Item")}
-    if len(items) == 1:
+    # Only a link's OWN label says what its page should be about. Links inside a
+    # hub page's text (template sources and the like) are labelled with the page
+    # name, which tells us nothing about the target.
+    items = {u["Item"] for u in uses if u.get("Item") and not str(u.get("Where", "")).startswith("Page:")}
+    if len(items) == 1 and all(not str(u.get("Where", "")).startswith("Page:") for u in uses):
         about = mentions_item(next(iter(items)), f"{title} {h1} {visible_text(probe.text)}")
         if about is False:
             return {"result": "Suspect",

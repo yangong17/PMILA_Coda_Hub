@@ -263,3 +263,11 @@ def test_blank_category_from_a_read_page_clears_old_junk_but_missing_key_does_no
     rows = {r["url"]: r for r in merge("blog", existing, fresh, now="T1")}
     assert rows["https://a.org/1"]["category"] == ""
     assert rows["https://a.org/2"]["category"] == "Kept"
+
+
+def test_blog_category_layout_where_every_link_has_its_own_container():
+    from src.collectors.pmi_la_blog import parse_blog_post
+    cats = [f"Cat {i}" for i in range(12)]
+    menu = "".join(f'<div class="c"><a href="https://pmi-la.org/blog?categoryId={i}">{c}</a></div>' for i, c in enumerate(cats))
+    page = f"<html><body><p>Cat 3</p><h1>Post</h1>{menu}{menu}</body></html>"
+    assert parse_blog_post(page)["category"] in ("Cat 3", "")      # never all twelve
