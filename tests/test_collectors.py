@@ -271,3 +271,12 @@ def test_blog_category_layout_where_every_link_has_its_own_container():
     menu = "".join(f'<div class="c"><a href="https://pmi-la.org/blog?categoryId={i}">{c}</a></div>' for i, c in enumerate(cats))
     page = f"<html><body><p>Cat 3</p><h1>Post</h1>{menu}{menu}</body></html>"
     assert parse_blog_post(page)["category"] in ("Cat 3", "")      # never all twelve
+
+
+def test_drop_universal_categories():
+    from src.collectors.pmi_la_blog import drop_universal_categories
+    posts = [{"category": "Chapter News, Volunteer Spotlight"}] + \
+            [{"category": "Volunteer Spotlight"} for _ in range(5)]
+    out = drop_universal_categories(posts)
+    assert out[0]["category"] == "Chapter News"
+    assert all(p["category"] == "" for p in out[1:])

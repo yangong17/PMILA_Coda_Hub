@@ -155,6 +155,19 @@ def parse_blog_post(html: str) -> dict:
     return {"category": ", ".join(sorted(names)), "video_url": video}
 
 
+def drop_universal_categories(posts: List[dict]) -> List[dict]:
+    """A label on EVERY post (with enough posts to judge) is page chrome, not a
+    real category, so remove it."""
+    if len(posts) < 5:
+        return posts
+    sets = [{c.strip() for c in (p.get("category") or "").split(",") if c.strip()} for p in posts]
+    common = set.intersection(*sets) if sets else set()
+    if common:
+        for p, s in zip(posts, sets):
+            p["category"] = ", ".join(sorted(s - common))
+    return posts
+
+
 class PmiLaBlogCollector(BaseCollector):
     TABLE = "blog"
     SOURCE_NAME = "PMI-LA Blog"
@@ -176,4 +189,5 @@ class PmiLaBlogCollector(BaseCollector):
                     p.update(parse_blog_post(self.fetcher.text(p["url"])))
                 except Exception as e:
                     self.warn(f"post detail {p['url']} failed: {e}")
+            posts = drop_universal_categories(posts)
         return posts
