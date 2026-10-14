@@ -537,11 +537,14 @@ def main(argv=None, fetcher=None, book=None) -> int:
     if reviewer:
         print(f"Suspect pages will be reviewed by {REVIEW_MODEL}")
     from . import browsercheck
+    results = None
     if browsercheck.available() and not os.environ.get("LINKCHECK_NO_BROWSER"):
-        with browsercheck.BrowserProber() as browser:
-            results = check_links(grouped, fetcher, now, reviewer=reviewer, browser=browser)
-    else:
-        print("Real-browser recheck unavailable (playwright not installed); Blocked links stay Blocked")
+        try:
+            with browsercheck.BrowserProber() as browser:
+                results = check_links(grouped, fetcher, now, reviewer=reviewer, browser=browser)
+        except Exception as e:      # Chromium missing or failed to start: carry on without it
+            print(f"Real-browser recheck unavailable ({str(e).splitlines()[0][:120]}); Blocked links stay Blocked")
+    if results is None:
         results = check_links(grouped, fetcher, now, reviewer=reviewer)
     checks = freshness_checks(tables, run_log, enabled_outlets())
     summary = summarize(results, checks)
